@@ -1,0 +1,3 @@
+BOOTLOADER = atmel-dfu
+RGBLIGHT_ENABLE = no
+OLED_DRIVER_ENABLE = yes
