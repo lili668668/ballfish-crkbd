@@ -70,62 +70,52 @@ void render_logo(void) {
 }
 
 #define KEYLOG_LEN 5
-char     keylog_str[KEYLOG_LEN] = {};
-uint8_t  keylogs_str_idx        = 0;
-uint16_t log_timer = 0;
 
-const char code_to_name[60] = {
-    ' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f',
-    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
-    'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-    'R', 'E', 'B', 'T', '_', '-', '=', '[', ']', '\\',
-    '#', ';', '\'', '`', ',', '.', '/', ' ', ' ', ' '};
-
-void add_keylog(uint16_t keycode) {
-    if ((keycode >= QK_MOD_TAP && keycode <= QK_MOD_TAP_MAX) || (keycode >= QK_LAYER_TAP && keycode <= QK_LAYER_TAP_MAX)) {
-        keycode = keycode & 0xFF;
-    }
-
-    for (uint8_t i = KEYLOG_LEN - 1; i > 0; i--) {
-        keylog_str[i] = keylog_str[i - 1];
-    }
-    if (keycode < 60) {
-        keylog_str[0] = code_to_name[keycode];
-    }
-    keylog_str[KEYLOG_LEN - 1] = 0;
-
-    log_timer = timer_read();
+uint8_t current_layer = 0;
+layer_state_t layer_state_set_user(layer_state_t state) {
+	current_layer = get_highest_layer(state);
+	return state;
 }
 
-void update_log(void) {
-    if (timer_elapsed(log_timer) > 750) {
-        add_keylog(0);
+void render_default_layer_state(void) {
+    oled_write_P(PSTR("Lyout"), false);
+    switch (current_layer) {
+      case _QWERT:
+        oled_write_P(PSTR("QWERT"), false);
+        break;
+      case _NUMBER:
+        oled_write_P(PSTR("NUMBR"), false);
+        break;
+      case _RIGHTARROW:
+        oled_write_P(PSTR("RARRW"), false);
+        break;
+      case _FN:
+        oled_write_P(PSTR("FUNCT"), false);
+        break;
+      case _COPY:
+        oled_write_P(PSTR("COPY "), false);
+        break;
+      case _MOUSE:
+        oled_write_P(PSTR("MOUSE"), false);
+        break;
+      case _LEFTARROW:
+        oled_write_P(PSTR("LARRW"), false);
+        break;
+      case _RGB:
+        oled_write_P(PSTR("RGB  "), false);
+        break;
     }
-}
-
-void render_keylogger_status(void) {
-    oled_write_P(PSTR("KLogr"), false);
-    oled_write(keylog_str, false);
 }
 
 void render_status_main(void) {
-    render_keylogger_status();
+    render_default_layer_state();
 }
 
 void oled_task_user(void) {
-  update_log();
   if (is_keyboard_master()) {
     render_status_main();
   } else {
     render_logo();
   }
-}
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        add_keylog(keycode);
-    }
-    return true;
 }
 #endif
