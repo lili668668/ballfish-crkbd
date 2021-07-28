@@ -70,11 +70,43 @@ void render_logo(void) {
 }
 
 #define KEYLOG_LEN 5
+char     keylog_str[KEYLOG_LEN] = {};
+uint8_t  keylogs_str_idx        = 0;
+uint16_t log_timer              = 0;
+
+void add_keylog(uint16_t keycode) {
+    if ((keycode >= QK_MOD_TAP && keycode <= QK_MOD_TAP_MAX) || (keycode >= QK_LAYER_TAP && keycode <= QK_LAYER_TAP_MAX)) {
+        keycode = keycode & 0xFF;
+    }
+
+    for (uint8_t i = KEYLOG_LEN - 1; i > 0; i--) {
+        keylog_str[i] = keylog_str[i - 1];
+    }
+    if (keycode != 0) {
+        keylog_str[0] = '.';
+    } else {
+        keylog_str[0] = ' ';
+    }
+    keylog_str[KEYLOG_LEN - 1] = 0;
+
+    log_timer = timer_read();
+}
+
 
 uint8_t current_layer = 0;
 layer_state_t layer_state_set_user(layer_state_t state) {
 	current_layer = get_highest_layer(state);
 	return state;
+}
+
+void update_log(void) {
+    if (timer_elapsed(log_timer) > 750) {
+        add_keylog(0);
+    }
+}
+
+void render_keylogger_status(void) {
+    oled_write(keylog_str, false);
 }
 
 void render_default_layer_state(void) {
@@ -109,13 +141,22 @@ void render_default_layer_state(void) {
 
 void render_status_main(void) {
     render_default_layer_state();
+    render_keylogger_status();
 }
 
 void oled_task_user(void) {
+  update_log();
   if (is_keyboard_master()) {
     render_status_main();
   } else {
     render_logo();
   }
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) {
+        add_keylog(keycode);
+    }
+    return true;
 }
 #endif
