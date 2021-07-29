@@ -73,6 +73,7 @@ void render_logo(void) {
 char     keylog_str[KEYLOG_LEN] = {};
 uint8_t  keylogs_str_idx        = 0;
 uint16_t log_timer              = 0;
+uint8_t now_keycode = 0;
 
 void add_keylog(uint16_t keycode) {
     if ((keycode >= QK_MOD_TAP && keycode <= QK_MOD_TAP_MAX) || (keycode >= QK_LAYER_TAP && keycode <= QK_LAYER_TAP_MAX)) {
@@ -84,6 +85,7 @@ void add_keylog(uint16_t keycode) {
     }
     if (keycode != 0) {
         keylog_str[0] = '.';
+        now_keycode = keycode;
     } else {
         keylog_str[0] = ' ';
     }
@@ -107,6 +109,38 @@ void update_log(void) {
 
 void render_keylogger_status(void) {
     oled_write(keylog_str, false);
+}
+
+void render_keycode_emoji(void) {
+  switch (now_keycode % 9) {
+    case 0:
+      oled_write_P(PSTR(" OwO "), false);
+      break;
+    case 1:
+      oled_write_P(PSTR(" OAO "), false);
+      break;
+    case 2:
+      oled_write_P(PSTR(" OuO "), false);
+      break;
+    case 3:
+      oled_write_P(PSTR(" QAQ "), false);
+      break;
+    case 4:
+      oled_write_P(PSTR("XDDDD"), false);
+      break;
+    case 5:
+      oled_write_P(PSTR("=^_^="), false);
+      break;
+    case 6:
+      oled_write_P(PSTR(".___."), false);
+      break;
+    case 7:
+      oled_write_P(PSTR("Q___Q"), false);
+      break;
+    case 8:
+      oled_write_P(PSTR("O___O"), false);
+      break;
+  }
 }
 
 void render_default_layer_state(void) {
@@ -141,6 +175,7 @@ void render_default_layer_state(void) {
 
 void render_status_main(void) {
     render_default_layer_state();
+    render_keycode_emoji();
     render_keylogger_status();
 }
 
